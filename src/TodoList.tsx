@@ -1,27 +1,60 @@
-import React from 'react';
-import {TaskType} from "./App";
+import React, {useState, KeyboardEvent, ChangeEvent} from 'react';
+import {FilterValueType, TaskType} from "./App";
 
 type PropType = {
     title: string
     tasks: Array<TaskType>
+    addTask: (newTitle: string) => void
+    removeTask: (taskId: string) => void
+    changeFilter: (newFilter: FilterValueType) => void
 }
 
-export const TodoList = ({title, tasks}:PropType) => {
+export const TodoList = ({title, tasks, removeTask, changeFilter, addTask}: PropType) => {
+    const [localTitle, setLocalTitle] = useState<string>('');
+
+    const mappedTasks = tasks.map(task =>
+        <li key={task.id}><input type="checkbox" checked={task.isDone}/>
+            <span>{task.title}</span>
+            <button onClick={() => {removeTask(task.id)}}>x</button>
+        </li>)
+
+    const localAddTask = () => {
+        addTask(localTitle);
+        setLocalTitle('');
+    }
+
+    const filterButtonsHandler = (param: string) => {
+        if (param === 'all') {
+            changeFilter('all')
+        } else if (param === 'active') {
+            changeFilter('active')
+        } else if (param === 'completed') {
+            changeFilter('completed')
+        } else {
+            console.error('No such param for filter!')
+        }
+    }
+
+    const addTaskByEnter = (e:KeyboardEvent<HTMLInputElement>) =>{ if (e.key === 'Enter') localAddTask()}
+    const onLocalTitleChangeHandler = (e:ChangeEvent<HTMLInputElement>) => { setLocalTitle(e.target.value)}
+
     return <div>
         <h3>{title}</h3>
         <div>
-            <input/>
-            <button>+</button>
+            <input
+                value={localTitle}
+                onChange={onLocalTitleChangeHandler}
+                onKeyPress={addTaskByEnter}
+            />
+            <button onClick={localAddTask}>+</button>
         </div>
         <ul>
-            <li><input type="checkbox" checked={tasks[0].isDone}/> <span>{tasks[0].title}</span></li>
-            <li><input type="checkbox" checked={tasks[1].isDone}/> <span>{tasks[1].title}</span></li>
-            <li><input type="checkbox" checked={tasks[2].isDone}/> <span>{tasks[2].title}</span></li>
+            {mappedTasks}
         </ul>
         <div>
-            <button>All</button>
-            <button>Active</button>
-            <button>Completed</button>
+            <button onClick={() => filterButtonsHandler('all')}>All</button>
+            <button onClick={() => filterButtonsHandler('active')}>Active</button>
+            <button onClick={() => filterButtonsHandler('completed')}>Completed</button>
         </div>
     </div>
 }
